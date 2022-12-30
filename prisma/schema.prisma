@@ -1,0 +1,18 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://postgres:password@localhost:5432/postgres"
+}
+
+generator client {
+  // Corresponds to the cargo alias created earlier
+  provider = "cargo prisma"
+  // The location to generate the client. Is relative to the position of the schema
+  output   = "../src/prisma.rs"
+}
+
+model User {
+  id       String @id
+  username String @unique
+  email    String @unique
+  password String
+}
