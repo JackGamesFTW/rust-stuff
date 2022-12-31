@@ -1,12 +1,10 @@
 use std::sync::Arc;
-use rocket::serde::json::Json;
 
 #[macro_use]
 extern crate rocket;
 
 pub mod prisma;
-
-use prisma::{user};
+pub mod routes;
 
 // This is the struct that will hold the prisma client. This will be managed by
 // Rocket, accessible in the routing functions using the type alias `Ctx` below.
@@ -20,18 +18,6 @@ pub struct Context {
 // don't have to write `rocket::State<Context>` every single time.
 pub type Ctx = rocket::State<Context>;
 
-#[get("/")]
-async fn index(ctx: &Ctx) -> Json<Vec<user::Data>> {
-    let users = ctx.db
-        .user()
-        .find_many(vec![])
-        .exec()
-        .await
-        .unwrap();
-
-    Json(users)
-}
-
 #[launch]
 async fn rocket() -> _ {
     let db = Arc::new(
@@ -43,7 +29,6 @@ async fn rocket() -> _ {
     #[cfg(debug_assert)]
     db._db_push(false).await.unwrap();
 
-    rocket::build()
+    routes::mount(rocket::build())
         .manage(Context { db })
-        .mount("/", routes![index])
 }
