@@ -1,15 +1,27 @@
-use rocket::{post, serde::json::Json};
+use rocket::{post, serde::json::Json, form::Form};
 
 use crate::{Ctx, prisma::user};
 
-#[post("/register")]
-pub async fn handler(ctx: &Ctx) -> Json<Vec<user::Data>> {
-    let users = ctx.db
+#[derive(FromForm)]
+pub struct Register {
+    username: String,
+    email: String,
+    password: String,
+}
+
+#[post("/register", data = "<data>")]
+pub async fn handler(ctx: &Ctx, data: Form<Register>) -> Json<user::Data> {
+    let user: user::Data = ctx.db
         .user()
-        .find_many(vec![])
+        .create(
+            data.username.to_string(),
+            data.email.to_string(),
+            data.password.to_string(),
+            vec![]
+        )
         .exec()
         .await
         .unwrap();
 
-    Json(users)
+    Json(user)
 }
